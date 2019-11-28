@@ -49,3 +49,8 @@ payable contract Auction =
     
     // save meeting in blockchain
     put(state{ properties[propertyId] = property, propertiesLength = newLength })
+
+  payable stateful entrypoint auctionProperty(propertyId: int) =
+    let property = getProperty(propertyId)
+
+    if (!property.available) abort("Property auction is finished!")
