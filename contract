@@ -1,0 +1,51 @@
+payable contract Auction =
+  // Offer
+  record offer = 
+    { offerAddress    : address,
+      quantity : int }
+
+  // Property
+  record property =
+    { url            : string,
+      title          : string,
+      description    : string,
+      latitude       : string, 
+      longitude      : string, 
+      limit          : int,
+      available      : bool,
+      offers     : map(address, offer) }
+
+  record state = 
+    { properties       : map(int, property),
+      propertiesLength : int }
+
+  // Init
+  entrypoint init() = { properties = {}, propertiesLength = 0 }
+
+  // Get Property
+  entrypoint getProperty(propertyId: int) : property = 
+    state.properties[propertyId]
+
+  // Properties Length
+  entrypoint getPropertiesLength() = state.propertiesLength
+
+  // Create Property
+  stateful entrypoint createProperty(url': string, title': string, description': string,
+                                    latitude': string, longitude': string,
+                                    limit': int, available': bool) =
+    // Parse values
+    let property = 
+      { url = url',
+        title = title',
+        description = description', 
+        latitude = latitude', 
+        longitude = longitude', 
+        limit = limit',
+        available = available',
+        offers = {} }
+        
+    let propertyId = getPropertiesLength()
+    let newLength = propertyId + 1
+    
+    // save meeting in blockchain
+    put(state{ properties[propertyId] = property, propertiesLength = newLength })
