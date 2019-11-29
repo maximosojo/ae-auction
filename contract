@@ -1,8 +1,8 @@
 payable contract Auction =
   // Offer
   record offer = 
-    { offerAddress    : address,
-      quantity : int }
+    { address   : address,
+      amount    : int }
 
   // Property
   record property =
@@ -12,6 +12,7 @@ payable contract Auction =
       latitude       : string, 
       longitude      : string, 
       limit          : int,
+      minOffer       : int,
       available      : bool,
       offers     : map(address, offer) }
 
@@ -32,7 +33,7 @@ payable contract Auction =
   // Create Property
   stateful entrypoint createProperty(url': string, title': string, description': string,
                                     latitude': string, longitude': string,
-                                    limit': int, available': bool) =
+                                    limit': int, minOffer': int) =
     // Parse values
     let property = 
       { url = url',
@@ -41,7 +42,8 @@ payable contract Auction =
         latitude = latitude', 
         longitude = longitude', 
         limit = limit',
-        available = available',
+        minOffer = minOffer',
+        available = true,
         offers = {} }
         
     let propertyId = getPropertiesLength()
@@ -52,5 +54,26 @@ payable contract Auction =
 
   payable stateful entrypoint auctionProperty(propertyId: int) =
     let property = getProperty(propertyId)
-
+  
+    // Validate available
     if (!property.available) abort("Property auction is finished!")
+    
+    // Validate min amount offer
+    if (Call.value < property.minOffer) abort("The offer is less than the minimum!")
+    
+    let updatedLimit = property.limit - 1
+
+    let offers = property.offers
+
+    let offer =
+      { address = Call.caller,
+        amount = Call.value }
+    
+    let updatedOffers = offers{ [Call.caller] = offer }
+    
+    let updatedOffer = property{ offers = updatedOffers, limit = updatedLimit }
+    
+    let updatedOffers = state.properties{ [propertyId] = updatedOffer }
+    
+    // update state
+    put(state{ properties = updatedOffers })
