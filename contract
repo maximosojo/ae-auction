@@ -27,6 +27,10 @@ payable contract Auction =
   entrypoint getProperty(propertyId: int) : property = 
     state.properties[propertyId]
 
+  // Get Properties
+  entrypoint getProperties() = 
+    state.properties
+
   // Properties Length
   entrypoint getPropertiesLength() = state.propertiesLength
 
@@ -52,6 +56,7 @@ payable contract Auction =
     // save meeting in blockchain
     put(state{ properties[propertyId] = property, propertiesLength = newLength })
 
+  // Auction Property
   payable stateful entrypoint auctionProperty(propertyId: int) =
     let property = getProperty(propertyId)
   
